@@ -64,8 +64,8 @@ The only HTML code the programmer has to write is to define an area (or several 
 It is possible to define several zones on the page and target specific programs on those zones.
 
 	$(function() {
-	widgsock.run("first");
-	widgsock.run("second");
+		widgsock.run("first");
+		widgsock.run("second");
 	});  
 
 

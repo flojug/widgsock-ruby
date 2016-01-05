@@ -97,23 +97,81 @@ Each widget allows the programer to retrieve events which can occur on it :
 		puts "w.val=" + w.val
 	end
 
-Widgets documentation
-=====================
+Application
+========
+
+Areas
+========
+
+A default area is set to the default zone from the HTML window. It is then possible to define new areas from this one and attach widgets to those areas.
+
+	Widgsock::register("first") do |app|
+
+		main = app.get_area
+
+		menuarea = Area.new(:w=>main.w, :h=>30, :name=>"menu")
+		app.set_area("menu", menuarea)
+
+		m = menuarea.widget(:type=>"Menu", :title=>"Menu 1", :items=>{:option1=>"Page1", :option2=>"Page2 bla bla bla"})
+		m.on("click") do |mess|
+			if mess["item"]=="option1"
+				...
+			elsif mess["item"]=="option2"
+				...
+			end
+		end
+
+	end
+
+Widgets 
+========
+
+Widgets can be constructed either from an aera or an application. They are constructed by a factory method which receveives their type as argument :
+
+	w = app.widget( :type=> ..., ... )
+
 
 Select widget
 ------------------
 
+	arr = {"val1"=>"first value", "val2"=>"second value"}
+	w = app.widget(:type=>"Select", :values=>arr)
+	w.display(:x=>0, :y=>0)
+
+	w.on("change") do
+		puts "w.val=" + w.val
+	end
+
 MultiSelect widget
 ------------------
+
+  w4 = app.widget(:type=>"MultiSelect", :values=>h)
+  w4.display(:x=>500, :y=>100, :w=>100, :h=>100)
+
+  w4.on("change") do
+    txt = w4.val.to_s
+  end
 
 FileUpload widget
 ------------------
 
+	w7 = app.widget(:type=>"FileUpload", :label=>"Upload file")
+	w7.display(:x=>20, :y=>300)
+	w7.on("file") do |f|
+		puts "file name " + f["local_name"]
+	end
+
 Menu widget
 ------------------
 
-Table widget
-------------------
+	m = app.widget(:type=>"Menu", :title=>"Menu 1", :items=>{:option1=>"Page1", :option2=>"Page2 bla bla bla"})
+	m.on("click") do |mess|
+		if mess["item"]=="option1"
+			wnd.page_init
+		elsif mess["item"]=="option2"
+			wnd.page_2
+		end
+	end
 
 Input widget
 ------------------
@@ -139,6 +197,8 @@ Img widget
 Tabs widget
 ------------------
 
+Table widget
+------------------
 
 
 

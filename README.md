@@ -24,6 +24,15 @@ Ruby implementation
 
 The ruby implementation of widgsock uses websocket-eventmachine-server to build the websocket server.
 
+Installation
+=====================
+
+	gem install "websocket-eventmachine-server"
+	gem install "json"
+	gem install "rmagick"
+	git clone https://github.com/flojug/widgsock
+	git clone https://github.com/flojug/widgsock-ruby
+
 How to use it
 =====================
 
@@ -91,7 +100,7 @@ Example : for drawing a select widget on the screen :
 
 For now all the widgets are displayed in absolute mode (x,y,w,h) in the area of the application.
 
-Each widget allows the programer to retrieve events which can occur on it :
+Each widget allows the programer to retrieve events :
 
 	w.on("change") do
 		puts "w.val=" + w.val
@@ -126,7 +135,7 @@ A default area is set to the default zone from the HTML window. It is then possi
 Widgets 
 ========
 
-Widgets can be constructed either from an aera or an application. They are constructed by a factory method which receveives their type as argument :
+Widgets can be constructed either from an aera or an application. They are constructed by a factory method which receveives the widget type as argument :
 
 	w = app.widget( :type=> ..., ... )
 
@@ -145,62 +154,110 @@ Select widget
 MultiSelect widget
 ------------------
 
-  w4 = app.widget(:type=>"MultiSelect", :values=>h)
-  w4.display(:x=>500, :y=>100, :w=>100, :h=>100)
+	w = app.widget(:type=>"MultiSelect", :values=>h)
+	w.display(:x=>500, :y=>100, :w=>100, :h=>100)
 
-  w4.on("change") do
-    txt = w4.val.to_s
-  end
+	w.on("change") do
+		txt = w.val.to_s
+	end
 
 FileUpload widget
 ------------------
 
-	w7 = app.widget(:type=>"FileUpload", :label=>"Upload file")
-	w7.display(:x=>20, :y=>300)
-	w7.on("file") do |f|
+	w = app.widget(:type=>"FileUpload", :label=>"Upload file")
+	w.display(:x=>20, :y=>300)
+	w.on("file") do |f|
 		puts "file name " + f["local_name"]
 	end
 
 Menu widget
 ------------------
 
-	m = app.widget(:type=>"Menu", :title=>"Menu 1", :items=>{:option1=>"Page1", :option2=>"Page2 bla bla bla"})
-	m.on("click") do |mess|
-		if mess["item"]=="option1"
-			wnd.page_init
+	w = app.widget(:type=>"Menu", :title=>"Menu 1", :items=>{:option1=>"Page1", :option2=>"Page2 bla bla bla"})
+	w.on("click") do |mess|
+		if wess["item"]=="option1"
+			...
 		elsif mess["item"]=="option2"
-			wnd.page_2
+			...
 		end
 	end
 
 Input widget
 ------------------
 
+	w = self.widget(:type=>"Input")
+	w.display(:x=>60, :y=>0, :w=>200)
+
 Textarea widget
 ------------------
+
+	txtarea = app.widget(:type=>"Textarea", :value=>"Test")
+	txtarea.display(:x=>0, :y=>100, :w=>400, :h=>100)
+	txtarea.on("change") do |mess|
+		...
+	end
 
 Button widget
 ------------------
 
+	b = self.widget(:type=>"Button", :label=>"Page 1")
+	b.on("click") do
+		...
+	end
+
 Canvas widget
 ------------------
+
+For manipulation of canvas into HTML5 page, a proxy object is built. All calls are made as they would be done in javascript onto this object.
+
+	w = app.widget(:type=>"Canvas")
+	w.display(:x=>0, :y=>400, :h=>150, :w=>300)
+	wctx = w.get_context2d
+	wctx.fillStyle = "green";
+	wctx.fillRect(10, 10, 100, 100)
 
 Iframe widget
 ------------------
 
+	ifr = app.widget(:type=>"Iframe", :url=>"http://google.com")
+	ifr.display(:x=>0, :y=>270, :w=>900, :h=>250)
+
 Text widget
 ------------------
+
+Used to display text in the window.
+
+	w = app.widget(:type=>"Text", :label=>"Filter : ")
+	w.display(:x=>0, :y=>5)
 
 Img widget
 ------------------
 
+Used to display an image in the window. The image is given as a local file on the server. It will be given to the browser directly into the HTML5 code.
+
+	w = tab.widget(:tab=>"tab4", :type=>"Img", :file=>"/tmp/img.jpg")
+	w.display(:x=>0, :y=>0)
+
+
 Tabs widget
 ------------------
+
+	# display a 3 tabs widget
+	tab = self.widget(:type=>"Tabs", :tabs=>{"tab1"=>"Tab 1", "tab2"=>"Tab 2", 
+		"tab3"=>"Tab 3", "tab4"=>"Tab 4"} )
+	tab.display(:x=>20, :y=>40, :w=>400, :h=>150)
+
+	# display a button in tab1
+	b = tab.widget(:tab=>"tab1", :type=>"Button", :label=>"Test button")
+	b.display(:x=>0, :y=>0)
+
 
 Table widget
 ------------------
 
-
+	infos = {:titles=>["First name", "Last name"]}
+	w = self.widget(:type=>"Table", :values=>h, :infos=>infos)
+	w.display(:x=>0, :y=>30, :w=>900, :h=>250)
 
 
 

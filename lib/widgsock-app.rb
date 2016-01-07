@@ -46,18 +46,15 @@ module Widgsock
 	end
 
 	class App
-		attr_reader :default_area
+		attr_reader :default_area, :temp_dir
 
-		def initialize(ws, name="app")
+		def initialize(ws, name="app", temp_dir="/tmp/")
 			@ws = ws
 			@frames = {}
 			@tracer = Widgsock::Tracer.new(:level=>Tracer::LOG_ERR)
 			@areas = {}
 			@default_area = ""
-		end
-
-		def get_temp_dir
-			"/tmp/"
+			@temp_dir = temp_dir
 		end
 
 		def options(args)
@@ -173,7 +170,7 @@ module Widgsock
 
 						# retrieve file and send a file event to the widget
 						if mess["action"]=="send_files"
-							lclname = app.get_temp_dir + mess["filename"]
+							lclname = app.temp_dir + mess["filename"]
 							File.open(lclname, 'w') { |f| 
 								f.write(Base64.decode64(mess["data"])) 
 							}

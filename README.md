@@ -55,6 +55,7 @@ The only HTML code the programmer has to write is to define an area (or several 
 
 
 	<!DOCTYPE html>
+	<html>
 	<header>
 	  <meta charset="utf-8" />
 	  <link rel="stylesheet" href="css/widgsock.css" type="text/css" media="screen">

@@ -31,180 +31,180 @@ include Magick
 
 module Widgsock
 
-	@@host = "localhost"
-	@@port = 8080
-	@@blocks = {}
-	@@files = {}
+  @@host = "localhost"
+  @@port = 8080
+  @@blocks = {}
+  @@files = {}
 
-	def self.register(name="app", &block)
-		@@blocks[name] = block
-	end
+  def self.register(name="app", &block)
+    @@blocks[name] = block
+  end
 
-	def self.get_block(name)
-		raise ArgumentError, "#{name} app unknown" if !@@blocks.has_key?(name)
-		@@blocks[name]
-	end
+  def self.get_block(name)
+    raise ArgumentError, "#{name} app unknown" if !@@blocks.has_key?(name)
+    @@blocks[name]
+  end
 
-	class App
-		attr_reader :default_area, :temp_dir
+  class App
+    attr_reader :default_area, :temp_dir
 
-		def initialize(ws, name="app", temp_dir="/tmp/")
-			@ws = ws
-			@frames = {}
-			@tracer = Logger.new(STDOUT)
-			@tracer.level = Logger::INFO
-			@areas = {}
-			@default_area = ""
-			@temp_dir = temp_dir
-		end
+    def initialize(ws, name="app", temp_dir="/tmp/")
+      @ws = ws
+      @frames = {}
+      @tracer = Logger.new(STDOUT)
+      @tracer.level = Logger::INFO
+      @areas = {}
+      @default_area = ""
+      @temp_dir = temp_dir
+    end
 
-		def options(args)
-			if args[:name]
-				@name = args[:name]
-			elsif args[:tracer]
-				@tracer = args[:tracer]
-			end
-		end
+    def options(args)
+      if args[:name]
+        @name = args[:name]
+      elsif args[:tracer]
+        @tracer = args[:tracer]
+      end
+    end
 
-		def set_area(name, area, aclass="")
-			raise ArgumentError, "this area '#{name}' exists." if @areas.has_key?(name)
-			if @areas.empty?
-				@default_area = name
-			end
-			@areas[name] = area
-			area.app = self
-			mess = { :action=>"register_area", :w=>area.w, :h=>area.h, :name=>name, :decorator=>area.decorator, :x=>area.x, :y=>area.y }
-			mess[:aclass] = aclass if !aclass.empty? 
-			self.sendmsg(mess)
-		end
+    def set_area(name, area, aclass="")
+      raise ArgumentError, "this area '#{name}' exists." if @areas.has_key?(name)
+      if @areas.empty?
+        @default_area = name
+      end
+      @areas[name] = area
+      area.app = self
+      mess = { :action=>"register_area", :w=>area.w, :h=>area.h, :name=>name, :decorator=>area.decorator, :x=>area.x, :y=>area.y }
+      mess[:aclass] = aclass if !aclass.empty? 
+      self.sendmsg(mess)
+    end
 
-		def unset_area(name)
-			raise ArgumentError, "main area cannot be deleted." if name=="main"
-			@areas.delete(name) 
-			Widgsock::Widget::unset_widget(name)
-			mess = { :action=>"unregister_area", :name=>name }
-			self.sendmsg(mess)
-		end
+    def unset_area(name)
+      raise ArgumentError, "main area cannot be deleted." if name=="main"
+      @areas.delete(name) 
+      Widgsock::Widget::unset_widget(name)
+      mess = { :action=>"unregister_area", :name=>name }
+      self.sendmsg(mess)
+    end
 
-		def refresh_area(name)
-			if @areas.has_key?(name)
-				mess = { :action=>"refresh_area", :name=>name }
-				self.sendmsg(mess)
-			end
-		end
+    def refresh_area(name)
+      if @areas.has_key?(name)
+        mess = { :action=>"refresh_area", :name=>name }
+        self.sendmsg(mess)
+      end
+    end
 
-		def get_area(name=nil)
-			if name && @areas.has_key?(name)
-				@areas[name] 
-			else
-				@areas[default_area]
-			end	
-		end
+    def get_area(name=nil)
+      if name && @areas.has_key?(name)
+        @areas[name] 
+      else
+        @areas[default_area]
+      end
+    end
 
-		def set_default_area(name)
-			if @areas.has_key? name
-				@default_area = name
-			else
-				raise ArgumentError, "area #{name} does not exist."
-			end
-		end
+    def set_default_area(name)
+      if @areas.has_key? name
+        @default_area = name
+      else
+        raise ArgumentError, "area #{name} does not exist."
+      end
+    end
 
-		def info(msg)
-			@tracer.info msg if @tracer
-		end
+    def info(msg)
+      @tracer.info msg if @tracer
+    end
 
-		def run
-			raise ArgumentError, "widgsock app name required." if @name.empty? 
-			Widgsock::get_block(@name).call self
-		end
+    def run
+      raise ArgumentError, "widgsock app name required." if @name.empty? 
+      Widgsock::get_block(@name).call self
+    end
 
-		def widget(args)
-			args[:app] = self
-			area = @areas[args[:area]] || @areas[self.default_area]
-			return area.widget(args)
-		end
+    def widget(args)
+      args[:app] = self
+      area = @areas[args[:area]] || @areas[self.default_area]
+      return area.widget(args)
+    end
 
-		def sendmsg(msg)
-			raise StandardError, "unconnected app." if @ws==nil
-			msg[:app] = @name
-			mess = JSON.generate(msg)
-			@tracer.info "<==== : #{msg}"
-			@ws.send(mess)
-		end
+    def sendmsg(msg)
+      raise StandardError, "unconnected app." if @ws==nil
+      msg[:app] = @name
+      mess = JSON.generate(msg)
+      @tracer.info "<==== : #{msg}"
+      @ws.send(mess)
+    end
 
-	end
+  end
 
-	def self.run
-		# launch Websocket Event Machine, 
-		#  open websocket => calls app block
-		EM.run do
+  def self.run
+    # launch Websocket Event Machine, 
+    #  open websocket => calls app block
+    EM.run do
 
-			WebSocket::EventMachine::Server.start(:host => @@host, :port => @@port) do |ws|
+      WebSocket::EventMachine::Server.start(:host => @@host, :port => @@port) do |ws|
 
-				app = Widgsock::App.new(ws)
+        app = Widgsock::App.new(ws)
 
-				ws.onopen do
-					app.info "client connected"
-					puts @@files
-				end
+        ws.onopen do
+          app.info "client connected"
+          puts @@files
+        end
 
-				ws.onmessage do |msg, type|
-					
-					begin
-						app.info "====> : #{msg}"
-						app.info "type: #{type}"
+        ws.onmessage do |msg, type|
 
-						mess = JSON.parse msg
+          begin
+            app.info "====> : #{msg}"
+            app.info "type: #{type}"
 
-						if mess["action"]=="run"
-							app.options(:name=>mess["name"])
-							area = Widgsock::Area.new(:name=>"main", :w=>mess["w"].to_i, :h=>mess["h"].to_i)
-							app.set_area("main", area)
-							app.run
-						end
+            mess = JSON.parse msg
 
-						if mess["action"]=="apply_event"
-							w = Widgsock::Widget::get_widget(mess["name"])
-							event = mess["event"]
-							w.send event+"_srv", mess if w.respond_to? event+"_srv"
-						end
+            if mess["action"]=="run"
+              app.options(:name=>mess["name"])
+              area = Widgsock::Area.new(:name=>"main", :w=>mess["w"].to_i, :h=>mess["h"].to_i)
+              app.set_area("main", area)
+              app.run
+            end
 
-						# retrieve file and send a file event to the widget
-						if mess["action"]=="send_files"
-							lclname = app.temp_dir + mess["filename"]
-							File.open(lclname, 'w') { |f| 
-								f.write(Base64.decode64(mess["data"])) 
-							}
-							mess["local_name"] = lclname
-							w = Widgsock::Widget::get_widget(mess["name"])
-							w.send "file_srv", mess 
-							# erase file ?
-						end
+            if mess["action"]=="apply_event"
+              w = Widgsock::Widget::get_widget(mess["name"])
+              event = mess["event"]
+              w.send event+"_srv", mess if w.respond_to? event+"_srv"
+            end
 
-						# retrieve big data associated with widgets (like images)
-						if mess["action"]=="get_data"
-							w = Widgsock::Widget::get_widget(mess["name"])
-							data = w.get_data(mess["which"])
-							app.sendmsg({:action=>"data", :data=>data, :name=>mess["name"], :which=>mess["which"]})
-						end
+            # retrieve file and send a file event to the widget
+            if mess["action"]=="send_files"
+              lclname = app.temp_dir + mess["filename"]
+              File.open(lclname, 'w') { |f| 
+                f.write(Base64.decode64(mess["data"])) 
+              }
+              mess["local_name"] = lclname
+              w = Widgsock::Widget::get_widget(mess["name"])
+              w.send "file_srv", mess 
+              # erase file ?
+            end
 
-					rescue => exp
-						mess = "Fatal Error : #{exp.class}: #{exp.message}"
-						app.sendmsg({:action=>"error", :message=>mess})
-						app.info mess
-						ws.close
-					end
+            # retrieve big data associated with widgets (like images)
+            if mess["action"]=="get_data"
+              w = Widgsock::Widget::get_widget(mess["name"])
+              data = w.get_data(mess["which"])
+              app.sendmsg({:action=>"data", :data=>data, :name=>mess["name"], :which=>mess["which"]})
+            end
 
-				end
+          rescue => exp
+            mess = "Fatal Error : #{exp.class}: #{exp.message}"
+            app.sendmsg({:action=>"error", :message=>mess})
+            app.info mess
+            ws.close
+          end
 
-				ws.onclose do
-					app.info "client disconnected"
-				end
+        end
 
-			end
+        ws.onclose do
+          app.info "client disconnected"
+        end
 
-		end
-	end
+      end
+
+    end
+  end
 
 end
 

@@ -19,11 +19,11 @@ require "websocket-eventmachine-server"
 require "json"
 require "base64"
 require "rmagick"
+require "logger"
 
 $LOAD_PATH << File.dirname(__FILE__)
 
 require "widgsock-widget"
-require "widgsock-tracer"
 require "widgsock-area"
 
 include Magick
@@ -51,7 +51,8 @@ module Widgsock
 		def initialize(ws, name="app", temp_dir="/tmp/")
 			@ws = ws
 			@frames = {}
-			@tracer = Widgsock::Tracer.new(:level=>Tracer::LOG_ERR)
+			@tracer = Logger.new(STDOUT)
+			@tracer.level = Logger::INFO
 			@areas = {}
 			@default_area = ""
 			@temp_dir = temp_dir
@@ -108,8 +109,8 @@ module Widgsock
 			end
 		end
 
-		def log(msg, level)
-			@tracer.log msg, level if @tracer
+		def info(msg)
+			@tracer.info msg if @tracer
 		end
 
 		def run
@@ -127,7 +128,7 @@ module Widgsock
 			raise StandardError, "unconnected app." if @ws==nil
 			msg[:app] = @name
 			mess = JSON.generate(msg)
-			@tracer.log "<==== : #{msg}", Tracer::LOG_DEBUG
+			@tracer.info "<==== : #{msg}"
 			@ws.send(mess)
 		end
 
@@ -143,15 +144,15 @@ module Widgsock
 				app = Widgsock::App.new(ws)
 
 				ws.onopen do
-					app.log "client connected", Tracer::LOG_DEBUG
+					app.info "client connected"
 					puts @@files
 				end
 
 				ws.onmessage do |msg, type|
 					
 					begin
-						app.log "====> : #{msg}", Tracer::LOG_DEBUG
-						app.log "type: #{type}", Tracer::LOG_DEBUG
+						app.info "====> : #{msg}"
+						app.info "type: #{type}"
 
 						mess = JSON.parse msg
 
@@ -190,14 +191,14 @@ module Widgsock
 					rescue => exp
 						mess = "Fatal Error : #{exp.class}: #{exp.message}"
 						app.sendmsg({:action=>"error", :message=>mess})
-						app.log mess, Tracer::LOG_ERR
+						app.info mess
 						ws.close
 					end
 
 				end
 
 				ws.onclose do
-					app.log "client disconnected", Tracer::LOG_DEBUG
+					app.info "client disconnected"
 				end
 
 			end

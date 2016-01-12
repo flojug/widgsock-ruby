@@ -24,12 +24,16 @@ Ruby implementation
 
 The ruby implementation of widgsock uses websocket-eventmachine-server to build the websocket server.
 
+Compatibility : Ruby 2.1.0
+
 Installation
 =====================
 
 	gem install "websocket-eventmachine-server"
 	gem install "json"
 	gem install "rmagick"
+	gem install "logger"
+
 	git clone https://github.com/flojug/widgsock
 	git clone https://github.com/flojug/widgsock-ruby
 

@@ -4,10 +4,11 @@ require "csv"
 
 Widgsock::register("first") do |app|
 
-  tracer = Widgsock::Tracer.new(:level=>Widgsock::Tracer::LOG_DEBUG)
+  tracer = Logger.new(STDOUT)
+  tracer.level = Logger::DEBUG
   app.options(:tracer=>tracer)
 
-  app.log "running...", Widgsock::Tracer::LOG_DEBUG
+  tracer.debug "running..."
 
   arr = {"liste1"=>"1ere liste", "liste2"=>"deuxieme liste"}
   w = app.widget(:type=>"Select", :values=>arr)

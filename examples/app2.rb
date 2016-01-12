@@ -150,7 +150,8 @@ end
 
 Widgsock::register("first") do |app|
 
-  tracer = Widgsock::Tracer.new(:level=>Widgsock::Tracer::LOG_DEBUG)
+  tracer = Logger.new(STDOUT)
+  tracer.level = Logger::DEBUG
   app.options(:tracer=>tracer)
 
   main = app.get_area
